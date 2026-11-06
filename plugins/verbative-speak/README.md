@@ -20,33 +20,20 @@ In Claude Code:
 /plugin install verbative-speak@verbative
 ```
 
-Then run `/verbative-speak:setup` once. It shows the hooks it adds to your Claude Code
-settings and adds them when you say yes. The voice then downloads once, about half a
-gigabyte, and Claude starts speaking as soon as it's ready.
+The first session downloads the voice once, about half a gigabyte. Claude starts
+speaking as soon as it's ready.
 
 Runs on **macOS with Apple Silicon** and **Windows**. Linux isn't supported yet. The
 sound plays on the machine running Claude Code, so it's for local sessions, not SSH.
 Claude's Cowork mode runs in a virtual machine without sound, so Verbative stays quiet
 there.
-On Windows, Claude Code runs hooks with Git Bash, so
+On Windows, Claude Code runs plugin hooks with Git Bash, so
 [Git for Windows](https://git-scm.com/download/win) must be installed.
-
-## What setup changes
-
-Verbative speaks through hooks: Claude Code runs them when a task finishes, when you
-send a prompt, and when Claude waits for you. They go into your own Claude Code settings
-(`~/.claude/settings.json`), not inside the plugin, so you see exactly what runs: setup
-shows each one before asking, and `/hooks` lists them afterwards. Each runs Verbative's
-launcher in its data folder, which hands it to the plugin as installed. Nothing else in
-your settings changes, and a copy of the previous file is kept next to it
-(`settings.json.verbative-backup`). `/verbative-speak:setup remove` takes them out again.
 
 ## Commands
 
 | Command | |
 |---|---|
-| `/verbative-speak:setup` | Add Verbative's hooks to your Claude Code settings (shown first, added on your yes) |
-| `/verbative-speak:setup remove` | Take them out again |
 | `/verbative-speak:voice` | Your status, then pick the voice, its speed, what it says when a task finishes, and approval reminders; plays a sample |
 | `/verbative-speak:voice off` / `on` | Switch the voice off or on |
 | `/verbative-speak:voice test` | Play a test line |
@@ -102,12 +89,9 @@ Details: [verbative.de/legal/privacy](https://verbative.de/legal/privacy/).
 
 ## Remove
 
-First `/verbative-speak:setup remove`, then
-`/plugin uninstall verbative-speak@verbative`. (Hooks left in your settings after an
-uninstall do nothing, and can be deleted from `~/.claude/settings.json`.) The
-downloaded voice lives in Verbative's data folder under `plugin/` (macOS:
-`~/Library/Application Support/Verbative/plugin`, Windows: `%APPDATA%\Verbative\plugin`)
-and can be deleted.
+`/plugin uninstall verbative-speak@verbative`. The downloaded voice lives in Verbative's
+data folder under `plugin/` (macOS: `~/Library/Application Support/Verbative/plugin`,
+Windows: `%APPDATA%\Verbative\plugin`) and can be deleted.
 
 ## License
 

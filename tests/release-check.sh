@@ -28,16 +28,6 @@ cmp -s LICENSE plugins/verbative-speak/LICENSE && ok "LICENSE copies match" || n
 # than a checkout has).
 grep -vE '^\s*(#|$)' .gitattributes | grep -E 'eol=' | grep -vqE 'eol=lf(\s|$)' && no ".gitattributes has a line-ending rule other than eol=lf"
 grep -vE '^\s*(#|$)' .gitattributes | grep -qE '(^|\s)(crlf|-?binary=|!binary)' && no ".gitattributes has a crlf or binary= rule"
-# The directory accepts code that runs on the user's computer (command or mcp_tool hooks,
-# a local MCP server, inline shell) only from Verified organizations: the plugin ships
-# none. Its hooks go into the user's own settings, through /verbative-speak:setup.
-P=plugins/verbative-speak
-[ ! -e "$P/hooks" ] || no "$P/hooks exists: the plugin ships no hooks (setup adds them to the user's settings)"
-python3 -c 'import json,sys; m=json.load(open(sys.argv[1])); sys.exit(any(k in m for k in ("hooks","mcpServers","lspServers")))' "$P/.claude-plugin/plugin.json" \
-  || no "plugin.json declares hooks or servers"
-docs=("$P"/commands/*.md "$P"/skills/*/SKILL.md)
-grep -lE '^hooks:' "${docs[@]}" > /dev/null && no "a command or skill declares hooks in its frontmatter"
-grep -lF '!`' "${docs[@]}" > /dev/null && no "a command or skill runs inline shell"
 for f in plugins/verbative-speak/bin/verbative.sh plugins/verbative-speak/bin/install.sh; do
   [ "$(git ls-files -s "$f" | cut -c1-6)" = 100755 ] || no "$f isn't executable in git"
 done

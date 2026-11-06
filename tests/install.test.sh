@@ -100,59 +100,6 @@ for _ in $(seq 1 50); do [ -f "$D/ready" ] && break; sleep 0.2; done
   && ok "…and is ready again" || no "re-setup finished: $(tail -2 "$D/install.log")"
 out="$(bash "$P/verbative.sh" cmd whatever)"; [ $? = 0 ] && ok "an unknown word still exits 0" || no "exit code"
 
-# /verbative-speak:setup: the hooks go into the user's own settings, each running a
-# launcher in the data folder that hands it to the installed plugin.
-L="$D/verbative-speak-hook.sh"
-said="verbative-hooks verbative-hooks-v13 __plugin settings-hooks"
-out="$(bash "$P/verbative.sh" setup)"
-[ "$out" = "$said preview $L" ] && [ ! -e "$L" ] \
-  && ok "setup on its own only previews (the hooks program reads the settings)" || no "preview: $out"
-out="$(bash "$P/verbative.sh" setup install)"
-[ "$out" = "$said install $L" ] && cmp -s "$P/settings-hook.sh" "$L" && [ "$(cat "$D/plugin-root")" = "$T/plugin" ] \
-  && ok "install puts the launcher in place and records the plugin folder, then has the hooks added" || no "install: $out"
-hook() { bash "$L" "$@" < /dev/null; }
-CFG="$HOME/.claude"
-mkdir -p "$CFG/plugins"
-[ "$(hook hook speak-summary)" = "verbative-hooks verbative-hooks-v13 speak-summary" ] \
-  && ok "a plugin folder loaded with --plugin-dir: the launcher hands each hook to it" || no "launcher, plugin folder"
-mkdir -p "$T/installed/bin" && printf '#!/bin/sh\necho "installed copy $*"\n' > "$T/installed/bin/verbative.sh"
-cat > "$CFG/plugins/installed_plugins.json" << EOF
-{
-  "version": 2,
-  "plugins": {
-    "verbative-speak@verbative": [
-      {
-        "scope": "user",
-        "installPath": "$T/installed",
-        "version": "0.3.0"
-      }
-    ],
-    "other@elsewhere": [
-      {
-        "scope": "user",
-        "installPath": "/nowhere"
-      }
-    ]
-  }
-}
-EOF
-[ "$(hook hook speak-summary)" = "installed copy hook speak-summary" ] \
-  && ok "installed from a marketplace: it follows Claude Code's list of installed plugins" || no "launcher, installed: $(hook hook speak-summary)"
-echo '{"enabledPlugins": {"verbative-speak@verbative": false}}' > "$CFG/settings.json"
-[ -z "$(hook hook speak-summary)" ] && ok "switched off in /plugin: nothing runs" || no "launcher, disabled"
-rm "$CFG/settings.json"
-stale="$CFG/plugins/cache/verbative/verbative-speak/0.2.0"
-mkdir -p "$stale/bin" && printf '#!/bin/sh\necho stale\n' > "$stale/bin/verbative.sh"
-echo '{"version": 2, "plugins": {}}' > "$CFG/plugins/installed_plugins.json"
-echo "$stale" > "$D/plugin-root"
-[ -z "$(hook hook speak-summary)" ] && ok "uninstalled: nothing runs, even with an old copy left in the plugin cache" || no "launcher, uninstalled"
-echo "# an older launcher" > "$L"
-bash "$P/verbative.sh" session-start < /dev/null > /dev/null
-cmp -s "$P/settings-hook.sh" "$L" && ok "a session start brings the launcher up to date" || no "launcher refresh"
-out="$(bash "$P/verbative.sh" setup remove)"
-[ "$out" = "$said remove $L" ] && [ ! -e "$L" ] && [ ! -e "$D/plugin-root" ] \
-  && ok "remove has the hooks taken out, and the launcher goes too" || no "remove: $out"
-
 # What Claude is told: only this plugin's own text files, whatever the program says.
 I="$T/plugin/instructions"
 for f in "$I"/*.txt; do
@@ -172,12 +119,19 @@ out="$(said '{"systemMessage": "x", "hookSpecificOutput": {"additionalContext": 
 python3 -c 'import json,sys; o=json.loads(sys.argv[1]); assert o["hookSpecificOutput"]["additionalContext"]==open(sys.argv[2],encoding="utf-8").read().rstrip("\n") and "used up" in o["systemMessage"]' "$out" "$I/spoken-summary.txt" \
   && ok "free summaries used up: the same line, and one note on screen" || no "used up: $out"
 
-# A setup preview, read back by Claude, must never pass for done.
-note="Nothing has been changed yet: this only shows what setup would do."
-out="$(FAKE_SAID="This adds 8 hooks to your Claude Code settings." bash "$P/verbative.sh" setup preview < /dev/null)"
-[ "$(printf '%s\n' "$out" | tail -1)" = "$note" ] && ok "a setup preview ends by saying nothing has changed yet" || no "preview note: $out"
-out="$(FAKE_SAID="There are no Verbative hooks in your Claude Code settings." bash "$P/verbative.sh" setup preview-remove < /dev/null)"
-[[ "$out" != *"$note"* ]] && ok "…and only when it shows a change" || no "preview note, nothing to remove: $out"
+# 0.3.0 kept its hooks in the user's settings (/verbative-speak:setup); 0.3.1 has them in
+# the plugin again. The first session start takes that copy out, through the hooks program.
+printf '#!/bin/sh\ncat > /dev/null\necho "$*" >> "%s"\nprintf "%%s" "$FAKE_SAID"\n' "$T/h.log" > "$H" && chmod +x "$H"
+: > "$D/verbative-speak-hook.sh" && echo /somewhere > "$D/plugin-root"
+out="$(bash "$P/verbative.sh" session-start < /dev/null)"
+grep -q "^__plugin settings-hooks remove$" "$T/h.log" && [ ! -e "$D/verbative-speak-hook.sh" ] && [ ! -e "$D/plugin-root" ] \
+  && [[ "$out" == *"part of the plugin again"* ]] \
+  && ok "0.3.0's hooks in the settings come out at the first session start, and it says so" || no "move back: $out"
+out="$(bash "$P/verbative.sh" session-start < /dev/null)"
+[ -z "$out" ] && [ "$(grep -c "settings-hooks remove" "$T/h.log")" = 1 ] && ok "…only once" || no "move back again: $out"
+out="$(FAKE_SAID="$(printf 'Voice: on\nPlan: Free\nHooks: not added yet (run /verbative-speak:setup)\nSpoken summaries today: 0 of 10 free')" bash "$P/verbative.sh" cmd status < /dev/null)"
+[ "$out" = "$(printf 'Voice: on\nPlan: Free\nSpoken summaries today: 0 of 10 free')" ] \
+  && ok "the status leaves out hooks program v17's line about those settings hooks" || no "status filter: $out"
 
 # Without the extension's voice model, setup fetches it from Verbative's releases.
 rm -rf "$HOME/Library/Application Support/Code/User/globalStorage/verbative.verbative" "$D/ready"
@@ -194,17 +148,4 @@ bash "$P/install.sh"
 [ -f "$D/ready" ] && cmp -s "$M/af_heart.safetensors" "$D/storage/kokoro-mlx/voices/af_heart.safetensors" \
   && [ "$(cat "$D/storage-dir")" = "$D/storage" ] \
   && ok "without the extension's model, setup fetches it from Verbative's releases" || no "model: $(tail -2 "$D/install.log")"
-
-# /verbative-speak:setup with an older hooks program, or none that downloads.
-pin VB_HOOKS_TAG verbative-hooks-v18 VB_HOOKS_SHA_darwin_arm64 "$(fake_archive verbative-hooks verbative-hooks-v18)"
-publish verbative-hooks verbative-hooks-v18
-out="$(bash "$P/verbative.sh" setup)"
-[ "$out" = "verbative-hooks verbative-hooks-v18 __plugin settings-hooks preview $D/verbative-speak-hook.sh" ] \
-  && [ "$(cat "$D/bin/.verbative-tts.version")" = verbative-tts-v7 ] \
-  && ok "setup fetches this version's hooks program first (only that), then previews with it" || no "setup update: $out"
-pin VB_HOOKS_TAG verbative-hooks-v19 VB_HOOKS_SHA_darwin_arm64 "$(fake_archive verbative-hooks verbative-hooks-v19)"
-start=$SECONDS
-out="$(bash "$P/verbative.sh" setup)"; rc=$?
-[ $rc = 0 ] && [[ "$out" == *"couldn't download its hooks program"* ]] && [ $((SECONDS - start)) -lt 10 ] \
-  && ok "a hooks program that won't download: setup says so right away (and exits 0)" || no "setup offline: $rc $out"
 echo "install: $pass checks passed"

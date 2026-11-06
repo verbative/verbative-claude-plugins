@@ -4,7 +4,7 @@
 # lands in Verbative's data folder (the same one the VS Code extension uses), under
 # plugin/, so the plugin never touches the extension's own binaries.
 
-VB_PLUGIN_VERSION="0.3.0"
+VB_PLUGIN_VERSION="0.3.1"
 VB_UNSUPPORTED=""
 
 case "$(uname -s)" in
@@ -34,9 +34,6 @@ esac
 if [ -n "${VERBATIVE_DATA_DIR:-}" ]; then VB_ROOT="$VERBATIVE_DATA_DIR"; fi
 
 VB_DIR="$VB_ROOT/plugin"
-# What the hooks in the user's Claude Code settings run (bin/settings-hook.sh, copied
-# here by /verbative-speak:setup): the same path across plugin updates.
-VB_LAUNCHER="$VB_DIR/verbative-speak-hook.sh"
 
 # The installed program for ID: in the folder of the version its marker names
 # (install.sh), or where versions before that kept it.
@@ -55,12 +52,6 @@ VB_TTS="$(vb_bin verbative-tts)"
 # The native Windows binaries need Windows paths in their environment.
 vb_native_path() {
   if command -v cygpath > /dev/null; then cygpath -w "$1"; else echo "$1"; fi
-}
-
-# A path written into Claude Code's settings: on Windows with forward slashes
-# (C:/Users/...), which both Git Bash and Windows read.
-vb_settings_path() {
-  if command -v cygpath > /dev/null; then cygpath -m "$1"; else echo "$1"; fi
 }
 
 vb_sha256() {

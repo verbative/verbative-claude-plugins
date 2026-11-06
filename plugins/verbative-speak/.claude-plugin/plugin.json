@@ -1,7 +1,7 @@
 {
   "name": "verbative-speak",
-  "version": "0.3.0",
-  "description": "After installing, run /verbative-speak:setup once. Claude Code speaks: a short summary when a task finishes, and what it needs when it waits for you: an approval, an answer, or a plan to review. Natural on-device voice, no API key. Free for 10 summaries a day.",
+  "version": "0.3.1",
+  "description": "Claude Code speaks: a short summary when a task finishes, and what it needs when it waits for you: an approval, an answer, or a plan to review. Natural on-device voice, no API key. Free for 10 summaries a day.",
   "author": {
     "name": "Verbative",
     "url": "https://verbative.de"

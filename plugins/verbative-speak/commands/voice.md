@@ -12,18 +12,6 @@ These are the only commands to run, each with the Bash tool, and nothing else:
 - Switch it on: `"${CLAUDE_PLUGIN_ROOT}/bin/verbative.sh" cmd on`
 - Play a test line: `"${CLAUDE_PLUGIN_ROOT}/bin/verbative.sh" cmd test`
 - Save settings: `"${CLAUDE_PLUGIN_ROOT}/bin/verbative.sh" cmd set voice=<voice> speed=<speed> summary=<summary|done> approvals=<on|off>`, with only the settings that change. It checks them, saves them and plays a sample.
-- Check the setup: `"${CLAUDE_PLUGIN_ROOT}/bin/verbative.sh" setup status`
-- Show what setup adds: `"${CLAUDE_PLUGIN_ROOT}/bin/verbative.sh" setup preview`
-- Add it: `"${CLAUDE_PLUGIN_ROOT}/bin/verbative.sh" setup install`
-
-**First, every time, run the setup check.** If its output says the hooks are in your Claude Code settings, go on below. If it says Verbative doesn't run on this computer, or couldn't download what it needs, show that as printed and stop. Otherwise Verbative isn't set up yet, and these four steps come before anything else:
-
-1. Run the setup preview.
-2. **Show the preview.** Write its output into your reply, inside a ``` code block, every line exactly as printed, the hook lines included. The user can't see tool output: without this block they would be agreeing to hooks they haven't seen. This holds however you ask in step 3, with the question tool or in plain text. Don't summarize it, and don't say anything was added: nothing changes until they pick "Add them".
-3. Then ask with AskUserQuestion, header "Setup", question "Verbative isn't set up yet, so nothing is spoken. Add the hooks listed above to your Claude Code settings now?", options "Add them" and "Not now". Give "Add them" a preview: the preview command's output, every line exactly as printed, so the hooks show right next to the choice.
-4. On "Add them", run the add command and show its output exactly as printed, and say in one sentence that the voice downloads in the background (about half a gigabyte, once, unless Verbative's VS Code extension already has it) and Claude starts speaking as soon as it's ready. On "Not now", say /verbative-speak:setup does it any time.
-
-Then go on below.
 
 If they typed off, on or test after the command, run that one command, show its output exactly as printed, and stop. Any other word: say the command takes off, on or test, and stop.
 

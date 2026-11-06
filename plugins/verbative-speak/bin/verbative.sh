@@ -1,15 +1,9 @@
 #!/usr/bin/env bash
-# Verbative for Claude Code: the one entry point the hooks and the commands call.
+# Verbative for Claude Code: the one entry point hooks.json and the commands call.
 #   verbative hook <name>      a Claude Code hook (its JSON payload on stdin)
 #   verbative session-start    SessionStart: start or finish the setup, refresh the plan
 #   verbative cmd [args...]    the /verbative-speak:* commands (status, set, on, off, test,
 #                              account [login, verify, logout])
-#   verbative setup <action>   /verbative-speak:setup: the hooks in the user's own Claude
-#                              Code settings (preview, install, preview-remove, remove)
-#
-# The plugin ships no hooks of its own. /verbative-speak:setup shows the user the hooks
-# it would add to their Claude Code settings and adds them on their yes; each runs
-# settings-hook.sh (copied to Verbative's data folder), which hands it to this script.
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
@@ -86,9 +80,15 @@ case "${1:-}" in
     ;;
   session-start)
     cat > /dev/null
-    # The launcher the settings hooks run follows plugin updates.
-    if [ -f "$VB_LAUNCHER" ] && ! cmp -s "$HERE/settings-hook.sh" "$VB_LAUNCHER"; then
-      cp "$HERE/settings-hook.sh" "$VB_LAUNCHER"
+    # 0.3.0 put Verbative's hooks into the user's own Claude Code settings (through
+    # /verbative-speak:setup). From 0.3.1 they're the plugin's again, so that copy comes
+    # out, or every hook would run twice. The hooks program takes out only those entries
+    # and keeps the previous file as settings.json.verbative-backup.
+    moved=""
+    if [ -f "$VB_DIR/verbative-speak-hook.sh" ] && [ -x "$VB_HOOKS" ] \
+      && (VERBATIVE_PLUGIN=1 "$VB_HOOKS" __plugin settings-hooks remove < /dev/null > /dev/null 2> /dev/null); then
+      rm -f "$VB_DIR/verbative-speak-hook.sh" "$VB_DIR/plugin-root"
+      moved=1
     fi
     if [ -n "$VB_UNSUPPORTED" ]; then
       # Claude's Cowork mode may run where no sound can play: no message there,
@@ -118,6 +118,9 @@ case "${1:-}" in
     # keep working meanwhile. Then refresh the plan (free or Code Advanced).
     if outdated; then start_setup; fi
     (VERBATIVE_PLUGIN=1 "$VB_HOOKS" __plugin sync "$VB_PLUGIN_VERSION" < /dev/null > /dev/null 2> /dev/null &)
+    if [ -n "$moved" ]; then
+      tell_user "Verbative's hooks are part of the plugin again, so the copies setup added to your Claude Code settings were taken out (the previous file is saved as settings.json.verbative-backup)."
+    fi
     exit 0
     ;;
   cmd)
@@ -136,54 +139,13 @@ case "${1:-}" in
       echo "Verbative is updating to this plugin version; try again in a minute."
       exit 0
     fi
-    (run __plugin "$@")
-    exit 0
-    ;;
-  setup)
-    # preview and preview-remove only show what would change; install and remove make
-    # the change, after the user said yes to it (commands/setup.md). Always exit 0, as
-    # for cmd.
-    action="${2:-preview}"
-    if [ -n "$VB_UNSUPPORTED" ]; then
-      echo "$VB_UNSUPPORTED"
-      exit 0
-    fi
-    # The hooks program edits the settings. Fetched first if it isn't here yet, or is
-    # older than this plugin version: a few seconds (another setup may be fetching it).
-    hooks_current() {
-      VB_HOOKS="$(vb_bin verbative-hooks)"
-      [ "$(cat "$VB_DIR/bin/.verbative-hooks.version" 2> /dev/null)" = "$VB_HOOKS_TAG" ] && [ -x "$VB_HOOKS" ]
-    }
-    if ! hooks_current && VB_ONLY=verbative-hooks bash "$HERE/install.sh"; then
-      for _ in $(seq 1 60); do
-        hooks_current && break
-        sleep 1
-      done
-    fi
-    if ! hooks_current; then
-      echo "Verbative couldn't download its hooks program. Check the connection, then run /verbative-speak:setup again. Details: $VB_DIR/install.log"
-      exit 0
-    fi
-    if [ "$action" = install ]; then
-      cp "$HERE/settings-hook.sh" "$VB_LAUNCHER" && (cd "$HERE/.." && pwd) > "$VB_DIR/plugin-root"
-    fi
-    said="$(run __plugin settings-hooks "$action" "$(vb_settings_path "$VB_LAUNCHER")")" && done=1 || done=0
-    echo "$said"
-    # A preview changes nothing, and says so: read back, it must never pass for done.
-    case "$action:$said" in
-      preview:This\ adds* | preview-remove:This\ removes*)
-        echo "Nothing has been changed yet: this only shows what setup would do."
-        ;;
-    esac
-    if [ $done = 1 ]; then
-      # Added: the voice downloads now, not at the next session. Removed: the launcher goes too.
-      if [ "$action" = install ] && [ ! -f "$VB_DIR/ready" ]; then start_setup; fi
-      if [ "$action" = remove ]; then rm -f "$VB_LAUNCHER" "$VB_DIR/plugin-root"; fi
-    fi
+    # Hooks program v17 also reports on the hooks 0.3.0's setup added to the settings;
+    # this version registers them in the plugin, so that line doesn't apply.
+    (run __plugin "$@") | sed '/^Hooks: /d'
     exit 0
     ;;
   *)
-    echo "usage: verbative hook <name> | session-start | cmd [args...] | setup <action>" >&2
+    echo "usage: verbative hook <name> | session-start | cmd [args...]" >&2
     exit 2
     ;;
 esac

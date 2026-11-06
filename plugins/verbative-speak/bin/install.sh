@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# Verbative for Claude Code: the one-time setup, started in the background by
-# /verbative-speak:setup (and by a session start when something it needs is missing).
-# Downloads the hooks, the voice engine and the voice model (each
+# Verbative for Claude Code: the one-time setup, started in the background by the
+# first session. Downloads the hooks, the voice engine and the voice model (each
 # SHA-256 pinned, from Verbative's release page; the model unless the VS Code
 # extension already has one), then marks the plugin ready. Safe to rerun: finished
 # steps are skipped, and only one setup runs at a time.
@@ -92,12 +91,6 @@ case "$VB_PLAT" in
   *) hooks_sha="" tts_sha="" ;;
 esac
 install_bin verbative-hooks "$VB_HOOKS_TAG" "$hooks_sha"
-# /verbative-speak:setup needs only the hooks program, right away; the rest follows in
-# the background once the hooks are in place.
-if [ "${VB_ONLY:-}" = verbative-hooks ]; then
-  log "hooks program ready"
-  exit 0
-fi
 install_bin verbative-tts "$VB_TTS_TAG" "$tts_sha"
 VB_HOOKS="$(vb_bin verbative-hooks)"
 

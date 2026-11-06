@@ -1,13 +1,13 @@
 ---
-description: Use when the user asks about Verbative or Verbative Speak, about Claude speaking or reading its replies aloud, spoken summaries or approval reminders, or why nothing is spoken. Says how to set Verbative up and where its settings are.
+description: Use when the user asks about Verbative or Verbative Speak, about Claude speaking or reading its replies aloud, spoken summaries or approval reminders, or why nothing is spoken. Says where Verbative's status and settings are.
 user-invocable: false
 ---
 
-Verbative Speak speaks through hooks in the user's own Claude Code settings. /verbative-speak:setup adds them: it shows them first and adds them only when the user says yes. Until then, nothing is spoken.
+Verbative Speak speaks on its own once it's installed: the first session downloads the voice (about half a gigabyte, once), and Claude starts speaking as soon as it's ready.
 
-- Nothing is spoken, or they want to start: tell them to run /verbative-speak:setup. It's theirs to approve, so don't try to run it for them.
-- The status, the voice, its speed, what it says when a task finishes, approval reminders, or switching the voice off and on: /verbative-speak:voice.
+- Nothing is spoken: /verbative-speak:voice shows the status (still setting up, switched off, or today's free summaries used up) and plays a test line with /verbative-speak:voice test. In VS Code, while the Verbative extension's Hands-Free panel is open, the extension speaks instead.
+- The voice, its speed, what it says when a task finishes, approval reminders, or switching the voice off and on: /verbative-speak:voice.
 - Their plan (10 spoken summaries a day free, unlimited with Code Advanced), signing in or out: /verbative-speak:account.
-- Removing it: /verbative-speak:setup remove, then /plugin uninstall verbative-speak.
+- Removing it: /plugin uninstall verbative-speak.
 
 Answer in a sentence or two and name the command. Run nothing.

@@ -1,0 +1,69 @@
+{
+  "name": "verbative-speak",
+  "version": "0.3.0",
+  "description": "After installing, run /verbative-speak:setup once. Claude Code speaks: a short summary when a task finishes, and what it needs when it waits for you: an approval, an answer, or a plan to review. Natural on-device voice, no API key. Free for 10 summaries a day.",
+  "author": {
+    "name": "Verbative",
+    "url": "https://verbative.de"
+  },
+  "homepage": "https://verbative.de",
+  "icon": "./icon.png",
+  "documentationUrl": "https://verbative.de/docs/speak/",
+  "privacyPolicyUrl": "https://verbative.de/legal/privacy/",
+  "termsOfServiceUrl": "https://verbative.de/legal/terms/",
+  "repository": "https://github.com/verbative/verbative-claude-plugins",
+  "license": "SEE LICENSE IN LICENSE",
+  "keywords": [
+    "voice",
+    "text-to-speech",
+    "tts",
+    "notifications",
+    "spoken summary",
+    "on-device"
+  ],
+  "userConfig": {
+    "voice": {
+      "type": "string",
+      "title": "Voice",
+      "description": "Who reads Claude's summaries aloud. American: Heart, Bella, Sarah, Nicole, Sky (female), Adam, Michael (male). British: Emma, Isabella (female), George, Lewis (male).",
+      "options": [
+        "Heart",
+        "Bella",
+        "Sarah",
+        "Nicole",
+        "Sky",
+        "Adam",
+        "Michael",
+        "Emma",
+        "Isabella",
+        "George",
+        "Lewis"
+      ],
+      "default": "Michael"
+    },
+    "speed": {
+      "type": "number",
+      "title": "Speed",
+      "description": "How fast it speaks: 1.0 is normal, 1.3 is the default.",
+      "min": 0.5,
+      "max": 2,
+      "default": 1.3
+    },
+    "summary": {
+      "type": "string",
+      "title": "When a task finishes",
+      "description": "summary: read Claude's short summary aloud. done: just say “Done.”",
+      "options": [
+        "summary",
+        "done"
+      ],
+      "default": "summary"
+    },
+    "approvals": {
+      "type": "boolean",
+      "title": "Approval reminders",
+      "description": "Say what Claude is waiting for when it needs you: an approval, an answer, or a plan to review.",
+      "default": true
+    }
+  }
+}

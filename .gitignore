@@ -1,0 +1,5 @@
+# Anthropic's plugin directory rejects these.
+.DS_Store
+Thumbs.db
+desktop.ini
+__MACOSX/

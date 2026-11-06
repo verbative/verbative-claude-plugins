@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "verbative",
+  "description": "Verbative for Claude Code",
+  "owner": {
+    "name": "Verbative",
+    "email": "info@verbative.de"
+  },
+  "plugins": [
+    {
+      "name": "verbative-speak",
+      "description": "After installing, run /verbative-speak:setup once. Claude Code speaks: a short summary when a task finishes, and what it needs when it waits for you: an approval, an answer, or a plan to review. Natural on-device voice, no API key.",
+      "author": {
+        "name": "Verbative"
+      },
+      "category": "productivity",
+      "source": "./plugins/verbative-speak",
+      "homepage": "https://verbative.de"
+    }
+  ]
+}

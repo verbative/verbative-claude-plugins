@@ -1,0 +1,4 @@
+# Shell scripts must keep LF line endings: Git for Windows would otherwise check them
+# out with CRLF, and bash (and the checksums in pins.sh) would break.
+* text=auto eol=lf
+*.png binary

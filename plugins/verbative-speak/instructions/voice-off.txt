@@ -1,0 +1,1 @@
+[Verbative voice] Voice output is OFF. Do not end your responses with the 🔊 spoken-summary line anymore — reply normally, with no final voice line, until instructed otherwise.

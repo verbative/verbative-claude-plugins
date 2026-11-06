@@ -17,9 +17,14 @@
     "voice",
     "text-to-speech",
     "tts",
-    "notifications",
-    "spoken summary",
-    "on-device"
+    "read aloud",
+    "speech",
+    "audio notifications",
+    "notify when done",
+    "permission alerts",
+    "hands-free",
+    "kokoro",
+    "local tts"
   ],
   "userConfig": {
     "voice": {
